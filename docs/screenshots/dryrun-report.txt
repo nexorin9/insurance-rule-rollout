@@ -1,0 +1,9 @@
+=== 干跑预演报告 (DryRunResult) ===
+ plan_id:              r-2026-09-DRG-v17
+ affected_inpatients:  87
+ departments:          儿科=14, 内科=31, 外科=24, 妇产科=18
+ projected_diff:       0.00
+ warnings:             (无)
+ dry_run_at:           2026-09-28T04:16:00Z
+
+=== AuditEvent JSONL 链 (append-only, 按 timestamp 升序, 最多 10 行) ===

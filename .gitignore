@@ -1,0 +1,54 @@
+# 运行时与缓存
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+*.tmp
+*.temp
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+
+# 构建产物
+dist/
+build/
+coverage/
+.next/
+.nuxt/
+target/
+
+# 数据库与运行时文件
+data/*.db
+data/*.db-journal
+data/*.sqlite
+*.state.db
+*.state.db-journal
+state.db
+state.db-journal
+
+# logs/（发布前清理任务会强制删除；平时也不入库）
+logs/
+tmp/
+temp/
+
+# 编辑器与 IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# 业务配置（不要入库）
+config.local.yaml
+config.local.json
+*.local
+
+# Round 元数据（不属于项目）
+score.json

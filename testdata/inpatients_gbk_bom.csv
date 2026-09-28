@@ -1,0 +1,4 @@
+﻿patient_id,department,admission_date,primary_diagnosis_code
+P0001,内科,2026-09-12,J18.901
+P0002,内科,2026-09-15,I63.901
+P0003,外科,2026-09-18,K35.001

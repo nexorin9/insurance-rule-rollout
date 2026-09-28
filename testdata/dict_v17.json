@@ -1,0 +1,12 @@
+{
+  "version": "v17",
+  "effective_date": "2026-10-01",
+  "prev_version": "v16",
+  "entries": [
+    {"code": "DRG-A001", "name": "胃食管及腹部手术", "weight": 2.450, "limit": 36800.00, "effective_date": "2026-10-01", "version": "v17"},
+    {"code": "DRG-A002", "name": "肝胆胰系统手术",  "weight": 3.180, "limit": 49500.00, "effective_date": "2026-10-01", "version": "v17"},
+    {"code": "DRG-B014", "name": "肺部感染",       "weight": 1.250, "limit": 14800.00, "effective_date": "2026-10-01", "version": "v17"},
+    {"code": "DRG-C007", "name": "急性脑血管病",  "weight": 2.090, "limit": 27600.00, "effective_date": "2026-10-01", "version": "v17"},
+    {"code": "DRG-E022", "name": "新生儿疾病",     "weight": 1.080, "limit": 11500.00, "effective_date": "2026-10-01", "version": "v17"}
+  ]
+}

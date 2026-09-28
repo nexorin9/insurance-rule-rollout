@@ -1,0 +1,74 @@
+[1/8] 打开本地 SQLite (Plan/Issue/AuditEvent + his_dict/his_audit_log), seeded v17 dict (5 行)
+[2/8] 医保平台 HTTP 替身拉取: version_id=r-2026-09-DRG-v17 rule_set=DRG-2026-09-NATIONAL rules=5 (url=http://127.0.0.1:49935)
+[3/8] 干跑预演完成: 影响在院患者 87, 部门数 4, 预计差额 0.00, warnings=0
+[4/8] 五态机会签完成: 0a54e08a-3e02-44f4-b6b8-3b4b0c24e6e3 状态=approved (create → draft → pending → approved)
+[5/8] 事务切换 HIS 字典表 v17 完成: 5 行 UPSERT + his_audit_log dual-write
+[6/8] SHA256 审计链自校验通过: 链头 GenesisHash, 链尾逐行重算一致
+[7/8] 审计链 JSONL 导出 (filter plan_id=0a54e08a-3e02-44f4-b6b8-3b4b0c24e6e3): 2325 bytes, 4 行
+
+=== Plan 状态推进轨迹 ===
+ step          status           draft  actor   comment
+ ────────────  ───────────────  ─────  ──────  ──────────────
+ created        draft            true   yang_jb  rule plan created
+ submit_draft   submitted        false  yang_jb  submit draft for multi-department review
+ approve        approved         false  yang_jb  已核对影响面
+ apply          applied          false  yang_jb  事务切换 HIS 字典表 v17
+
+=== 干跑预演报告 (DryRunResult) ===
+ plan_id:              r-2026-09-DRG-v17
+ affected_inpatients:  87
+ departments:          儿科=14, 内科=31, 外科=24, 妇产科=18
+ projected_diff:       0.00
+ warnings:             (无)
+ dry_run_at:           2026-09-28T04:16:00Z
+
+=== AuditEvent JSONL 链 (append-only, 按 timestamp 升序, 最多 10 行) ===
+{"event_id":"79bb5bf8-6994-4e39-8a13-917e56b3ea88","plan_id":"0a54e08a-3e02-44f4-b6b8-3b4b0c24e6e3","actor":"yang_jb","action":"create_plan","timestamp":"2026-09-28T04:16:00Z","payload":{"comment":"rule plan created","rule_set":"DRG-2026-09-NATIONAL","version_id":"r-2026-09-DRG-v17"}}
+{"event_id":"bc9a827d-3c1a-41e4-b4fd-3e07aa5f8cf6","plan_id":"0a54e08a-3e02-44f4-b6b8-3b4b0c24e6e3","actor":"yang_jb","action":"submit_draft","timestamp":"2026-09-28T04:16:00Z","payload":{"comment":"submit draft for multi-department review","from_status":"draft","to_status":"pending"}}
+{"event_id":"8f01c3e7-81a7-41ee-a40c-4d444fa3d9a4","plan_id":"0a54e08a-3e02-44f4-b6b8-3b4b0c24e6e3","actor":"yang_jb","action":"approve","timestamp":"2026-09-28T04:16:00Z","payload":{"comment":"已核对影响面","from_status":"pending","to_status":"approved"}}
+{"event_id":"49b99a77-71cf-4bff-a277-b6538f1c0d04","plan_id":"0a54e08a-3e02-44f4-b6b8-3b4b0c24e6e3","actor":"yang_jb","action":"apply","timestamp":"2026-09-28T04:16:00Z","payload":{"comment":"事务切换 HIS 字典表 v17","from_status":"approved","to_status":"applied"}}
+
+[8/8] 演示完成: Plan 0a54e08a-3e02-44f4-b6b8-3b4b0c24e6e3 已落 applied 状态, 共 4 条 AuditEvent 落地 (含 DryRunStarted + AuditExported), chain.Verify=true
+
+===============================================================================
+Task 32 — 扩展场景（rollback / reject / 干跑告警 / 多 plan 并发）
+===============================================================================
+
+=== Scenario 1: rollback 场景 (apply → rollback → dict 回到 v16) ===
+ rollback_dict_codes:
+  DRG-A001 | limit=35200 | version=r-2026-06-DRG-v16
+  DRG-A002 | limit=51200 | version=r-2026-06-DRG-v16
+  DRG-B014 | limit=15800 | version=r-2026-06-DRG-v16
+  DRG-C007 | limit=31200 | version=r-2026-06-DRG-v16
+  DRG-E022 | limit=11500 | version=r-2026-09-DRG-v17
+ scenario1_plan_status: rolled_back (durable row in store)
+ scenario1_rollback_event_on_chain: present (action=rollback)
+
+=== Scenario 2: reject 场景 (终态守卫) ===
+ scenario2_plan_status: rejected
+ scenario2_terminal_guard_triggered: other:*workflow.ErrRejectedReApprove
+ scenario2_second_approve_err: illegal transition rejected → approve: Rejected is a terminal state. Do not call Approve on a Rejected plan. Create a new Plan instead of re-opening this one.
+
+=== Scenario 3: 干跑告警场景 (limit 降幅 > 10%) ===
+ scenario3_warnings_count: 5
+  - DRG-A001 limit 降幅 14.0% (35200 → 30272)
+  - DRG-A002 limit 降幅 18.0% (51200 → 41984)
+  - DRG-B014 limit 降幅 11.0% (15800 → 14062)
+  - DRG-C007 limit 降幅 16.0% (31200 → 26208)
+  - DRG-E022 limit 降幅 13.0% (11500 → 10005)
+ scenario3_warning_keyword_limit_drop: present
+
+=== Scenario 4: 多 plan 并发场景 (5 个 plan 并发走完五态机) ===
+ scenario4_concurrent_results:
+  goroutine-0 plan_id=b3671412-8c0b-4912-8855-31a23e5af0a9 final_status=applied
+  goroutine-1 plan_id=8ed286f7-9899-4da8-b5e7-317b489b3f0e final_status=applied
+  goroutine-2 plan_id=c7fc8bbc-12c9-42bc-bfca-7fb8491d8bc8 final_status=applied
+  goroutine-3 plan_id=f77ad9e5-2b16-41b9-bd7d-4bd41adae238 final_status=applied
+  goroutine-4 plan_id=2658bb28-201b-4763-8183-19ddcc9e533f final_status=applied
+
+=== Task 32 总览 ===
+ scenario 1 (rollback) plan_id:     a9b2b6d6-72cf-4cc2-b61d-431cd6a0d718
+ scenario 2 (reject) plan_id:      19ce96dc-086c-4c97-bfff-0b40f1988b22
+ scenario 4 (concurrent) plan_ids: b3671412-8c0b-4912-8855-31a23e5af0a9, 8ed286f7-9899-4da8-b5e7-317b489b3f0e, c7fc8bbc-12c9-42bc-bfca-7fb8491d8bc8, f77ad9e5-2b16-41b9-bd7d-4bd41adae238, 2658bb28-201b-4763-8183-19ddcc9e533f
+ total AuditEvent on chain:        34 (≥ 20 阈值)
+ chain.Verify() after scenarios:   nil (= 无篡改)

@@ -1,0 +1,20 @@
+{
+  "version_id": "r-2026-09-DRG-v17",
+  "rule_set": "DRG-2026-09-NATIONAL",
+  "effective_date": "2026-10-01",
+  "prev_version_id": "r-2026-06-DRG-v16",
+  "rules": [
+    {"code": "DRG-A001", "name": "胃、食管及腹部手术（示例）", "weight": 2.450, "limit": 36800.00},
+    {"code": "DRG-A002", "name": "肝胆胰系统手术（示例）",     "weight": 3.180, "limit": 49500.00},
+    {"code": "DRG-B014", "name": "肺部感染（示例）",             "weight": 1.250, "limit": 14800.00},
+    {"code": "DRG-C007", "name": "急性脑血管病（示例）",         "weight": 2.090, "limit": 27600.00},
+    {"code": "DRG-E022", "name": "新生儿疾病（示例）",           "weight": 1.080, "limit": 11500.00}
+  ],
+  "rollback_sql": [
+    "UPDATE his_dict SET weight=2.380, limit=35200.00, effective_date='2026-07-01', version='v16' WHERE code='DRG-A001';",
+    "UPDATE his_dict SET weight=3.220, limit=51200.00, effective_date='2026-07-01', version='v16' WHERE code='DRG-A002';",
+    "UPDATE his_dict SET weight=1.180, limit=15800.00, effective_date='2026-07-01', version='v16' WHERE code='DRG-B014';",
+    "UPDATE his_dict SET weight=2.310, limit=31200.00, effective_date='2026-07-01', version='v16' WHERE code='DRG-C007';",
+    "UPDATE his_dict SET weight=1.080, limit=11500.00, effective_date='2026-07-01', version='v16' WHERE code='DRG-E022';"
+  ]
+}
